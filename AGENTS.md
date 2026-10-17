@@ -10,7 +10,8 @@ danger zone around heavy equipment, shows visual warnings, and logs
 potential-hazard events (timestamp + evidence screenshot) for review on a
 dashboard.
 
-The full spec is in `docs/PRD.md`. Read it before you make product or scope
+The full spec is in `docs/PRD.md`, and progress is tracked in
+`docs/ROADMAP.md`. Read it before you make product or scope
 decisions. If a request conflicts with the PRD, point out the conflict rather
 than quietly departing from it.
 
@@ -123,6 +124,20 @@ associated video/camera identifier.
 6. Optional: live webcam/camera stream.
 
 Work in phase order unless asked otherwise.
+
+### Progress tracking
+
+`docs/ROADMAP.md` is the source of truth for what is done, partially done or
+not started.
+
+- Check it at the start of a task to see what already exists and what comes
+  next.
+- When you finish or partly finish a task, update its status in the same
+  commit (✅ done, 🟡 partially done, ⬜ not started). Add a short note on what
+  remains for a 🟡 item, update the phase summary table and the
+  "Last updated" date, and tick the Definition of Done items that are met.
+- If you do work the roadmap doesn't list, add a row to the right phase rather
+  than leaving it untracked.
 
 ## Testing and evaluation (PRD §13)
 
