@@ -15,13 +15,14 @@ The full spec is in `docs/PRD.md`, and progress is tracked in
 decisions. If a request conflicts with the PRD, point out the conflict rather
 than quietly departing from it.
 
-**Status:** Phases 0, 2 and 3 done; Phase 1 needs real site footage; Phase 4 (Streamlit dashboard) next. Keep this
+**Status:** Phases 0, 2, 3 and 4 done; Phase 1 needs real site footage; Phase 5 (testing and demo) next. Keep this
 file in step with the code, dependencies and commands.
 
 ## Commands
 
 ```bash
 uv sync                                              # install / update the environment
+uv run streamlit run app/main.py                     # the app, on http://localhost:8501 only
 uv run pytest                                        # unit tests (no YOLO or real video needed)
 uv run python scripts/detect_people.py <video|image> # annotate people -> data/outputs/
 uv run python scripts/check_equipment.py <video>     # which COCO classes does YOLO see?
@@ -80,7 +81,10 @@ uploaded video files without a rewrite.
 Suggested layout (adjust as the code takes shape, then update this section):
 
 ```
-app/                 # Streamlit UI only (upload, processing status, dashboard) - Phase 4
+app/                 # Streamlit UI only  [exists]
+  main.py            #   entry point: navigation + sidebar settings
+  ui_common.py       #   cached config/storage/detector, processing runner
+  views/             #   process.py (upload, zones, run), events.py, runs.py
 constructsafe/
   config.py          # all tunables + storage paths; CONSTRUCTSAFE_* env overrides  [exists]
   sources.py         # frame sources: video file now, camera later  [exists]
@@ -91,6 +95,8 @@ constructsafe/
   storage.py         # SQLite access for SafetyEvent, zone configs, processing runs  [exists]
   annotate.py        # draw boxes, zone overlay, warning banners  [exists]
   pipeline.py        # glues the stages together; reports progress/status  [exists]
+  uploads.py         # save + validate uploaded videos, safe names  [exists]
+  video_out.py       # browser-playable video writer (H.264 → VP8 → mp4v)  [exists]
   review.py          # optional Gemma 4 review of event frames (off by default)
 scripts/             # CLI tools for development and evaluation  [exists]
 tests/
@@ -164,7 +170,12 @@ Build it only after Phases 1–4 work. Track it as Phase 7 in `docs/ROADMAP.md`.
   `completed` or `failed`. A failure needs a useful error message and a retry
   option.
 - **Upload validation (FR-01):** check the file type and readability before
-  processing. Show a clear error for invalid files.
+  processing. Show a clear error for invalid files. Implemented in
+  `uploads.save_upload()`: the type is checked before writing, and
+  unreadable files are deleted.
+- **App exposure:** `.streamlit/config.toml` binds to `localhost` and turns
+  off usage telemetry. Don't change that without adding access control
+  (PRD §8).
 
 ## Data model (PRD §11)
 

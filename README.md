@@ -23,7 +23,28 @@ This creates `.venv/` and installs Ultralytics, OpenCV, Streamlit and pytest.
 The pretrained `yolo11n.pt` weights (~5 MB) download into `models/` on first
 run.
 
-## Usage (Phase 1)
+## Run the app
+
+```bash
+uv run streamlit run app/main.py
+```
+
+Then open <http://localhost:8501>. The app only listens on localhost (see
+`.streamlit/config.toml`).
+
+1. **Process video:** upload a video (MP4, AVI, MOV or MKV, up to 1 GB) or
+   pick one already stored. Draw a danger zone with the sliders, or enter
+   polygon points, and check it on the preview. Then press **Process video**.
+   Progress, a live preview and the run status are shown while it runs, and
+   the annotated video plays when it finishes.
+2. **Safety events:** see event counts (new and reviewed), filter the list,
+   open an event's evidence screenshot, and mark it reviewed.
+3. **Processing runs:** see each run's status and error message, and retry
+   failed or interrupted runs.
+
+The sidebar has the confidence threshold and frame stride for this session.
+
+## Command-line tools
 
 Put videos in `data/videos/` (git-ignored). Supported types: `.mp4`, `.avi`,
 `.mov`, `.mkv`.

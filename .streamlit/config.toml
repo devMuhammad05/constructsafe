@@ -1,0 +1,11 @@
+# Footage stays on this machine (PRD §8 Privacy): only serve to localhost.
+# Restrict access properly before exposing the app on a network.
+[server]
+address = "localhost"
+maxUploadSize = 1024  # MB
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"  # hide the "Deploy" (cloud) button

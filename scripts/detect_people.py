@@ -20,6 +20,7 @@ from constructsafe.annotate import draw_detections, draw_status_text
 from constructsafe.config import load_config
 from constructsafe.detection import create_detector
 from constructsafe.sources import VideoFileSource, VideoValidationError
+from constructsafe.video_out import open_video_writer
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp"}
 
@@ -67,7 +68,8 @@ def main() -> int:
 
     info = source.info
     print(f"{source.name}: {info.width}x{info.height}, {info.fps:.1f} fps, {info.frame_count} frames")
-    out_path = config.outputs_dir / f"{args.input.stem}_people.mp4"
+    out_stem = config.outputs_dir / f"{args.input.stem}_people"
+    out_path = None
     out_fps = max(info.fps / config.frame_stride, 1.0) if info.fps > 0 else 10.0
     detector.warmup()
     writer = None
@@ -82,7 +84,7 @@ def main() -> int:
             annotated = draw_status_text(annotated, f"t={frame.timestamp_seconds:6.2f}s  people={len(people)}")
             if writer is None:
                 h, w = annotated.shape[:2]
-                writer = cv2.VideoWriter(str(out_path), cv2.VideoWriter_fourcc(*"mp4v"), out_fps, (w, h))
+                writer, out_path = open_video_writer(out_stem, out_fps, (w, h))
             writer.write(annotated)
             processed += 1
             if processed % 25 == 0:

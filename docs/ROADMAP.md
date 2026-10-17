@@ -15,7 +15,7 @@ changes, and add a short note or link (commit or PR) when useful.
 | 1. Object detection | 🟡 Partially done |
 | 2. Danger-zone logic | ✅ Done |
 | 3. Event logging | ✅ Done |
-| 4. Dashboard | 🟡 Partially done |
+| 4. Dashboard | ✅ Done |
 | 5. Testing and demonstration | 🟡 Partially done |
 | 6. Optional live monitoring | ⬜ Not started |
 | 7. Optional Gemma 4 event review | ⬜ Not started |
@@ -72,13 +72,14 @@ changes, and add a short note or link (commit or PR) when useful.
 
 | Status | Task | PRD ref |
 |---|---|---|
-| ⬜ | Upload page with file-type and readability checks | FR-01 |
-| ⬜ | Zone configuration UI | FR-03 |
-| 🟡 | Processing status: pending, processing, completed or failed, with retry | FR-08 · stored per run with error messages; a retry is a new run. UI still to build |
-| ⬜ | Show annotated footage | FR-05 |
-| ⬜ | Event history: count, list, timestamp and evidence image | FR-07 |
-| ⬜ | Mark events as reviewed and tell new events apart from reviewed ones | FR-07 |
-| ⬜ | Label alerts as potential hazards requiring human review | §8 Safety |
+| ✅ | Upload page with file-type and readability checks | FR-01 · `uploads.py` + `app/views/process.py`; invalid files rejected with a clear error and not kept. Valid upload covered by unit tests; invalid upload checked in the browser |
+| ✅ | Zone configuration UI | FR-03 · rectangle sliders or polygon points (%), live preview on the first frame, saved per video |
+| ✅ | Processing status: pending, processing, completed or failed, with retry | FR-08 · live progress and preview; `Processing runs` page with errors and Retry; runs interrupted by an app stop are marked failed on start-up |
+| ✅ | Show annotated footage | FR-05 · browser-playable output (`video_out.py`: H.264 MP4, else VP8 WebM) |
+| ✅ | Event history: count, list, timestamp and evidence image | FR-07 · `Safety events` page: metrics, filters, table, evidence |
+| ✅ | Mark events as reviewed and tell new events apart from reviewed ones | FR-07 |
+| ✅ | Label alerts as potential hazards requiring human review | §8 Safety · sidebar notice, events page banner, stored description, banner on frames |
+| ✅ | Serve the app on localhost only, no usage telemetry | §8 Privacy · `.streamlit/config.toml` |
 
 ## Phase 5 — Testing and demonstration
 
@@ -122,11 +123,11 @@ Post-MVP. Start only after Phases 1–4 work. See the Gemma 4 section in
 
 ## MVP Definition of Done (PRD §15)
 
-- [ ] A user can upload and process a supported construction video
+- [x] A user can upload and process a supported construction video
 - [ ] The system detects workers in the footage
 - [x] Entering a configured danger zone triggers a visible potential-hazard warning
 - [x] The system records the event timestamp and an evidence screenshot
-- [ ] The dashboard shows recorded events
-- [ ] Invalid input and processing failures are handled gracefully
+- [x] The dashboard shows recorded events
+- [x] Invalid input and processing failures are handled gracefully
 - [ ] Test results and known limitations are documented
 - [ ] The app can be demonstrated end to end on a development computer

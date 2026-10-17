@@ -178,6 +178,23 @@ class Storage:
             if cur.rowcount == 0:
                 raise KeyError(f"No processing run with id {run_id}")
 
+    def fail_interrupted_runs(self) -> int:
+        """Mark runs left ``processing`` (e.g. the app was stopped mid-run) as failed.
+
+        Call once at app start-up, when no run can legitimately be in progress.
+        """
+        with self._connect() as conn:
+            cur = conn.execute(
+                "UPDATE processing_runs SET status = ?, error_message = ?, updated_at = ? WHERE status = ?",
+                (
+                    STATUS_FAILED,
+                    "Processing was interrupted (the app stopped before it finished). Retry to process again.",
+                    _now(),
+                    STATUS_PROCESSING,
+                ),
+            )
+            return cur.rowcount
+
     def get_run(self, run_id: int) -> ProcessingRun | None:
         with self._connect() as conn:
             row = conn.execute("SELECT * FROM processing_runs WHERE id = ?", (run_id,)).fetchone()
