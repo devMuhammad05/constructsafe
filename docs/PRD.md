@@ -3,7 +3,7 @@
 
 **Version:** 1.0  
 **Status:** MVP — Proposed  
-**Product type:** Computer vision safety-monitoring web application
+**Product type:** Computer vision safety-monitoring 
 
 ## 1. Product Overview
 
@@ -11,7 +11,7 @@ The product is a computer vision-based safety-monitoring application that detect
 
 Using a pretrained object-detection model, the system analyses video frames, checks whether a worker enters a predefined danger zone around equipment, displays visual warnings, and records safety events for review.
 
-The initial version will support uploaded videos, with live camera monitoring introduced as a later MVP enhancement if time permits.
+The initial version will support uploaded videos, with live camera monitoring introduced as a later MVP enhancement. 
 
 ## 2. Problem Statement
 
