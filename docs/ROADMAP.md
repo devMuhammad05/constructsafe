@@ -27,9 +27,10 @@ changes, and add a short note or link (commit or PR) when useful.
 | ✅ | Write the PRD | `docs/PRD.md` |
 | ✅ | Add agent guidance files | `CLAUDE.md`, `AGENTS.md` |
 | ✅ | Create this roadmap | `docs/ROADMAP.md` |
-| ⬜ | Set up the Python environment and dependency file | Ultralytics, OpenCV, Streamlit |
+| ✅ | Choose uv as the package and environment manager | uv 0.13.1 installed; rules in `CLAUDE.md` / `AGENTS.md` |
+| ⬜ | Set up the Python environment with uv (`pyproject.toml`, `uv.lock`) | Ultralytics, OpenCV, Streamlit |
 | ⬜ | Scaffold the package layout and `tests/` | See `CLAUDE.md` › Architecture |
-| ⬜ | Add `.gitignore` for videos, evidence, weights and the database | |
+| ⬜ | Add `.gitignore` for videos, evidence, weights, the database and `.venv/` | |
 | ⬜ | Add a central config (threshold, frame stride, persistence frames, paths) | |
 | ⬜ | Add a README with setup and run instructions | |
 

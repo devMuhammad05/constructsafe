@@ -28,10 +28,26 @@ dependencies and commands exist, update this file to match them.
 | UI | Streamlit |
 | Event storage | SQLite |
 | Evidence images | Local file storage |
+| Package and environment management | **uv** (`pyproject.toml` + `uv.lock`) |
 
 Don't add frameworks, services, cloud dependencies or extra databases beyond
 this list without asking first. The one approved optional addition is a
 locally run Gemma 4 model for event review (see the Gemma 4 section below).
+
+## Package management (uv)
+
+Use [uv](https://docs.astral.sh/uv/) for every Python dependency and
+environment task. Don't use `pip`, `pip-tools`, `poetry`, `conda` or a
+hand-made `venv`, and don't add a `requirements.txt`.
+
+- Dependencies live in `pyproject.toml`; commit `uv.lock` alongside it.
+- Add a dependency: `uv add <package>` (dev-only: `uv add --dev <package>`).
+  Remove one with `uv remove <package>`.
+- Install/sync the environment: `uv sync` (creates `.venv/`, which is
+  git-ignored).
+- Run anything inside the project environment with `uv run`, e.g.
+  `uv run pytest`, `uv run streamlit run app/main.py`.
+- Pin the Python version with `uv python pin` (writes `.python-version`).
 
 ## Architecture
 
@@ -215,7 +231,7 @@ built-in skills at the points listed:
 | `/simplify` | After a feature works, to clean up duplication, for example between annotation and evidence-capture code. |
 | `/security-review` | Before merging changes to video upload, file paths, local storage or the database, and before any real-site deployment. Check file-type validation, path traversal in evidence paths, and footage access (PRD §8 Privacy). |
 | `dataviz` | Before building dashboard charts (event counts, events over time) or plots of evaluation results (precision/recall, FPS, alert latency). |
-| `/session-start-hook` | Once dependencies exist: add a SessionStart hook that installs requirements and runs the tests, so cloud sessions can verify work. |
+| `/session-start-hook` | Once dependencies exist: add a SessionStart hook that runs `uv sync` and `uv run pytest`, so cloud sessions can verify work. |
 
 Don't use `claude-api` for the Gemma 4 work. Gemma is not a Claude model, so
 follow the Gemma 4 section above instead.
