@@ -13,10 +13,10 @@ changes, and add a short note or link (commit or PR) when useful.
 |---|---|
 | 0. Project setup | ✅ Done |
 | 1. Object detection | 🟡 Partially done |
-| 2. Danger-zone logic | ⬜ Not started |
+| 2. Danger-zone logic | ✅ Done |
 | 3. Event logging | ⬜ Not started |
 | 4. Dashboard | ⬜ Not started |
-| 5. Testing and demonstration | ⬜ Not started |
+| 5. Testing and demonstration | 🟡 Partially done |
 | 6. Optional live monitoring | ⬜ Not started |
 | 7. Optional Gemma 4 event review | ⬜ Not started |
 
@@ -50,12 +50,13 @@ changes, and add a short note or link (commit or PR) when useful.
 
 | Status | Task | PRD ref |
 |---|---|---|
-| ⬜ | Define a danger-zone polygon per video or camera view | FR-03 |
-| ⬜ | Draw the zone as an overlay on frames | FR-03 |
-| ⬜ | Check worker positions against the zone (bbox bottom-centre) | FR-03 |
-| ⬜ | Add enter/inside/exit warning states | FR-04 |
-| ⬜ | Suppress duplicate alerts and debounce flickering detections | FR-04 |
-| ⬜ | Show a visible "potential hazard" warning in annotated footage | FR-05 |
+| ✅ | Define a danger-zone polygon per video or camera view | FR-03 · `zones.py`; normalised 0–1 coords, `--zone` or JSON file, `source_name` ties a zone to a video. SQLite storage in Phase 3, UI in Phase 4 |
+| ✅ | Draw the zone as an overlay on frames | FR-03 · amber when idle, red when occupied |
+| ✅ | Check worker positions against the zone (bbox bottom-centre) | FR-03 · boundary counts as inside |
+| ✅ | Add enter/inside/exit warning states | FR-04 · `events.py`, per-zone worker count with hysteresis |
+| ✅ | Suppress duplicate alerts and debounce flickering detections | FR-04 · enter 3 / exit 5 processed frames (config). No tracker, so ID switches can't duplicate alerts |
+| ✅ | Show a visible "potential hazard" warning in annotated footage | FR-05 · red banner with event type, zone and timestamp; in-zone workers in red |
+| ✅ | Pipeline glue and zone-monitor CLI | `pipeline.py` (no Streamlit), `scripts/monitor_zone.py` → annotated video + events JSON |
 
 ## Phase 3 — Event logging
 
@@ -82,11 +83,11 @@ changes, and add a short note or link (commit or PR) when useful.
 
 | Status | Task | PRD ref |
 |---|---|---|
-| 🟡 | Unit tests for zone geometry, the event state machine and storage | §13 · config, detection filtering and video source tests exist (18); zone/events/storage come with Phases 2–3 |
-| ⬜ | Scenario: worker outside the zone | §13 |
-| ⬜ | Scenario: worker entering, staying inside and leaving the zone | §13 |
-| ⬜ | Scenario: several workers near the equipment | §13 |
-| ⬜ | Scenario: occlusion or missed detections, and objects leaving the frame | §13 |
+| 🟡 | Unit tests for zone geometry, the event state machine and storage | §13 · 52 tests: config, detection, sources, zones, event state machine, pipeline. Storage tests come with Phase 3 |
+| 🟡 | Scenario: worker outside the zone | §13 · unit-tested with synthetic detections; real footage pending |
+| 🟡 | Scenario: worker entering, staying inside and leaving the zone | §13 · unit-tested; entry verified on a sample clip; real footage pending |
+| 🟡 | Scenario: several workers near the equipment | §13 · unit-tested (`additional_worker_entry`); real footage pending |
+| 🟡 | Scenario: occlusion or missed detections, and objects leaving the frame | §13 · unit-tested; real footage pending |
 | ⬜ | Measure detection precision and recall | §13 |
 | ⬜ | Measure event precision and recall | §13 |
 | ⬜ | Measure processing FPS and alert latency | §13 |
@@ -122,7 +123,7 @@ Post-MVP. Start only after Phases 1–4 work. See the Gemma 4 section in
 
 - [ ] A user can upload and process a supported construction video
 - [ ] The system detects workers in the footage
-- [ ] Entering a configured danger zone triggers a visible potential-hazard warning
+- [x] Entering a configured danger zone triggers a visible potential-hazard warning
 - [ ] The system records the event timestamp and an evidence screenshot
 - [ ] The dashboard shows recorded events
 - [ ] Invalid input and processing failures are handled gracefully

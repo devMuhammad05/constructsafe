@@ -15,7 +15,7 @@ The full spec is in `docs/PRD.md`, and progress is tracked in
 decisions. If a request conflicts with the PRD, point out the conflict rather
 than quietly departing from it.
 
-**Status:** Phase 0 done; Phase 1 (person detection) mostly done. Keep this
+**Status:** Phases 0 and 2 done; Phase 1 needs real site footage; Phase 3 (event logging) next. Keep this
 file in step with the code, dependencies and commands.
 
 ## Commands
@@ -25,6 +25,7 @@ uv sync                                              # install / update the envi
 uv run pytest                                        # unit tests (no YOLO or real video needed)
 uv run python scripts/detect_people.py <video|image> # annotate people -> data/outputs/
 uv run python scripts/check_equipment.py <video>     # which COCO classes does YOLO see?
+uv run python scripts/monitor_zone.py <video> --zone "x1,y1;x2,y2;x3,y3" [--preview]  # zone events
 ```
 
 Python: the project uses the system Python 3.13 (`.python-version`). Don't
@@ -84,12 +85,12 @@ constructsafe/
   config.py          # all tunables + storage paths; CONSTRUCTSAFE_* env overrides  [exists]
   sources.py         # frame sources: video file now, camera later  [exists]
   detection.py       # YOLO wrapper → person detections (bbox, label, confidence)  [exists]
-  zones.py           # danger-zone polygons + point-in-zone checks
-  events.py          # zone-entry state machine, duplicate suppression
+  zones.py           # danger-zone polygons + point-in-zone checks  [exists]
+  events.py          # zone-entry state machine, duplicate suppression  [exists]
   evidence.py        # screenshot capture to local storage
   storage.py         # SQLite access for SafetyEvent and zone configs
-  annotate.py        # draw boxes, zone overlay, warning banners  [boxes exist]
-  pipeline.py        # glues the stages together; reports progress/status
+  annotate.py        # draw boxes, zone overlay, warning banners  [exists]
+  pipeline.py        # glues the stages together; reports progress/status  [exists]
   review.py          # optional Gemma 4 review of event frames (off by default)
 scripts/             # CLI tools for development and evaluation  [exists]
 tests/
@@ -144,9 +145,10 @@ Build it only after Phases 1–4 work. Track it as Phase 7 in `docs/ROADMAP.md`.
   in image space**, tied to a video or camera view. Pretrained YOLO may not
   recognise excavators, so a manual zone is the fallback, not optional extra
   work.
-- **Zone membership:** check a worker's position against the polygon. The
-  bottom-centre of the bbox (the feet) is a sensible default; whatever you
-  choose, document it. Don't compute or claim real-world distances in metres.
+- **Zone membership:** a worker is in a zone when the bottom-centre of their
+  bbox (`Detection.foot_point`) is inside the polygon or on its edge. Polygons
+  are stored in normalised 0–1 coordinates so they survive frame resizing.
+  Don't compute or claim real-world distances in metres.
 - **Events (FR-04, FR-06):**
   - Emit one event when a worker *enters* the zone, not one per frame while
     they stay inside.
@@ -154,6 +156,10 @@ Build it only after Phases 1–4 work. Track it as Phase 7 in `docs/ROADMAP.md`.
     hysteresis (e.g. N frames in or out) so flickering detections don't cause
     alert spam or missed exits.
   - Handle missing detections and occlusion without crashing.
+  - Implemented in `events.py` as a per-zone worker *count* with hysteresis
+    (no person tracking): `danger_zone_entry` when an empty zone gets a
+    worker, `additional_worker_entry` when the count rises. Keep that design
+    unless tracking is explicitly added (PRD §16).
 - **Processing status (FR-08):** each video is `pending`, `processing`,
   `completed` or `failed`. A failure needs a useful error message and a retry
   option.
