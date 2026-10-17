@@ -62,8 +62,29 @@ Repeat `--zone` for several zones, or pass `--zones data/zones/site.json`:
             "source_name": "site.mp4"}]}
 ```
 
-The script writes `data/outputs/<video>_zones.mp4` (annotated) and
-`<video>_events.json`.
+Zones given with `--zone` or `--zones` are saved to the database for that
+video, so later runs can omit them.
+
+### Event logging (Phase 3)
+
+Each run of `monitor_zone.py` writes:
+
+| What | Where |
+|---|---|
+| Events, zones, processing runs | `data/constructsafe.db` (SQLite) |
+| Evidence screenshot per event (annotated frame) | `data/evidence/` |
+| Annotated video | `data/outputs/run<id>_<video>_annotated.mp4` |
+
+Every event is stored with `review_status = new` and the description
+"Potential hazard requiring human review". Each run is recorded as `pending`
+→ `processing` → `completed` or `failed`, with an error message on failure.
+A retry is a new run.
+
+Inspect the database:
+
+```bash
+uv run python -c "from constructsafe.config import load_config; from constructsafe.storage import Storage; s = Storage(load_config().database_path); print(s.count_events()); [print(e) for e in s.list_events()]"
+```
 
 How it decides:
 

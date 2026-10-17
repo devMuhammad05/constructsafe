@@ -14,8 +14,8 @@ changes, and add a short note or link (commit or PR) when useful.
 | 0. Project setup | ✅ Done |
 | 1. Object detection | 🟡 Partially done |
 | 2. Danger-zone logic | ✅ Done |
-| 3. Event logging | ⬜ Not started |
-| 4. Dashboard | ⬜ Not started |
+| 3. Event logging | ✅ Done |
+| 4. Dashboard | 🟡 Partially done |
 | 5. Testing and demonstration | 🟡 Partially done |
 | 6. Optional live monitoring | ⬜ Not started |
 | 7. Optional Gemma 4 event review | ⬜ Not started |
@@ -44,7 +44,7 @@ changes, and add a short note or link (commit or PR) when useful.
 | ✅ | Filter detections by a configurable confidence threshold | FR-02 · default 0.35 |
 | 🟡 | Test whether pretrained YOLO detects the target equipment, and record the result | §14 · `scripts/check_equipment.py` works (tested on a sample street image only). Still needs real construction footage |
 | 🟡 | Run person detection on real construction footage | FR-02 · verified only on Ultralytics' sample image and a synthetic clip; no site video in the repo yet |
-| ✅ | Record baseline CPU speed | ~7 fps, `yolo11n` at 640 px, 16-thread CPU, after warm-up |
+| ✅ | Record baseline CPU speed | ~7–8 fps, `yolo11n` at 640 px, 16-thread CPU, after warm-up, including annotation and logging |
 
 ## Phase 2 — Danger-zone logic
 
@@ -62,10 +62,11 @@ changes, and add a short note or link (commit or PR) when useful.
 
 | Status | Task | PRD ref |
 |---|---|---|
-| ⬜ | Create the SQLite schema for `SafetyEvent` and zone configs | §11 |
-| ⬜ | Save evidence screenshots to local storage | FR-06 |
-| ⬜ | Record events with timestamp, type, zone, evidence path and review status | FR-06 |
-| ⬜ | Verify events persist across app restarts | FR-06 |
+| ✅ | Create the SQLite schema for `SafetyEvent` and zone configs | §11 · `storage.py`: `safety_events`, `danger_zones`, `processing_runs`; schema versioned via `PRAGMA user_version` |
+| ✅ | Save evidence screenshots to local storage | FR-06 · `evidence.py`: annotated frame as JPEG in `data/evidence/`; sanitised names, relative paths, traversal-checked |
+| ✅ | Record events with timestamp, type, zone, evidence path and review status | FR-06 · plus run id, frame, first-seen time, worker count and the "requires human review" description. An event is kept even if its screenshot fails |
+| ✅ | Verify events persist across app restarts | FR-06 · unit test reopens the DB; verified on the sample clip (zones reloaded from DB on second run) |
+| ✅ | End-to-end `process_video()` with run status and error capture | `pipeline.py`; `scripts/monitor_zone.py` uses it |
 
 ## Phase 4 — Dashboard (Streamlit)
 
@@ -73,7 +74,7 @@ changes, and add a short note or link (commit or PR) when useful.
 |---|---|---|
 | ⬜ | Upload page with file-type and readability checks | FR-01 |
 | ⬜ | Zone configuration UI | FR-03 |
-| ⬜ | Processing status: pending, processing, completed or failed, with retry | FR-08 |
+| 🟡 | Processing status: pending, processing, completed or failed, with retry | FR-08 · stored per run with error messages; a retry is a new run. UI still to build |
 | ⬜ | Show annotated footage | FR-05 |
 | ⬜ | Event history: count, list, timestamp and evidence image | FR-07 |
 | ⬜ | Mark events as reviewed and tell new events apart from reviewed ones | FR-07 |
@@ -83,7 +84,7 @@ changes, and add a short note or link (commit or PR) when useful.
 
 | Status | Task | PRD ref |
 |---|---|---|
-| 🟡 | Unit tests for zone geometry, the event state machine and storage | §13 · 52 tests: config, detection, sources, zones, event state machine, pipeline. Storage tests come with Phase 3 |
+| ✅ | Unit tests for zone geometry, the event state machine and storage | §13 · 73 tests incl. storage, evidence paths and pipeline failure handling |
 | 🟡 | Scenario: worker outside the zone | §13 · unit-tested with synthetic detections; real footage pending |
 | 🟡 | Scenario: worker entering, staying inside and leaving the zone | §13 · unit-tested; entry verified on a sample clip; real footage pending |
 | 🟡 | Scenario: several workers near the equipment | §13 · unit-tested (`additional_worker_entry`); real footage pending |
@@ -124,7 +125,7 @@ Post-MVP. Start only after Phases 1–4 work. See the Gemma 4 section in
 - [ ] A user can upload and process a supported construction video
 - [ ] The system detects workers in the footage
 - [x] Entering a configured danger zone triggers a visible potential-hazard warning
-- [ ] The system records the event timestamp and an evidence screenshot
+- [x] The system records the event timestamp and an evidence screenshot
 - [ ] The dashboard shows recorded events
 - [ ] Invalid input and processing failures are handled gracefully
 - [ ] Test results and known limitations are documented

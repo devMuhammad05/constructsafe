@@ -15,7 +15,7 @@ The full spec is in `docs/PRD.md`, and progress is tracked in
 decisions. If a request conflicts with the PRD, point out the conflict rather
 than quietly departing from it.
 
-**Status:** Phases 0 and 2 done; Phase 1 needs real site footage; Phase 3 (event logging) next. Keep this
+**Status:** Phases 0, 2 and 3 done; Phase 1 needs real site footage; Phase 4 (Streamlit dashboard) next. Keep this
 file in step with the code, dependencies and commands.
 
 ## Commands
@@ -25,7 +25,7 @@ uv sync                                              # install / update the envi
 uv run pytest                                        # unit tests (no YOLO or real video needed)
 uv run python scripts/detect_people.py <video|image> # annotate people -> data/outputs/
 uv run python scripts/check_equipment.py <video>     # which COCO classes does YOLO see?
-uv run python scripts/monitor_zone.py <video> --zone "x1,y1;x2,y2;x3,y3" [--preview]  # zone events
+uv run python scripts/monitor_zone.py <video> --zone "x1,y1;x2,y2;x3,y3" [--preview]  # zone events -> SQLite + evidence
 ```
 
 Python: the project uses the system Python 3.13 (`.python-version`). Don't
@@ -87,8 +87,8 @@ constructsafe/
   detection.py       # YOLO wrapper → person detections (bbox, label, confidence)  [exists]
   zones.py           # danger-zone polygons + point-in-zone checks  [exists]
   events.py          # zone-entry state machine, duplicate suppression  [exists]
-  evidence.py        # screenshot capture to local storage
-  storage.py         # SQLite access for SafetyEvent and zone configs
+  evidence.py        # screenshot capture to local storage  [exists]
+  storage.py         # SQLite access for SafetyEvent, zone configs, processing runs  [exists]
   annotate.py        # draw boxes, zone overlay, warning banners  [exists]
   pipeline.py        # glues the stages together; reports progress/status  [exists]
   review.py          # optional Gemma 4 review of event frames (off by default)
@@ -174,6 +174,18 @@ video), `event_type`, `zone_id` (nullable), `evidence_path`, `review_status`
 
 Store danger-zone configs separately: name, polygon coordinates, and the
 associated video/camera identifier.
+
+Implemented in `constructsafe/storage.py`. The tables are `safety_events`,
+`danger_zones` and `processing_runs`, and the schema version lives in
+`PRAGMA user_version`. Bump `SCHEMA_VERSION` and add a migration when the
+schema changes.
+- `evidence_path` is **relative to `config.evidence_dir`**. Always read it
+  back through `evidence.resolve_evidence_path()`, which blocks path
+  traversal.
+- `evidence_path` may be NULL if writing the screenshot failed. The event is
+  still stored.
+- Use `pipeline.process_video()` for end-to-end processing. It records run
+  status and errors instead of raising.
 
 ## Non-negotiables
 
