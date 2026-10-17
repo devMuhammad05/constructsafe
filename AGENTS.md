@@ -30,7 +30,8 @@ dependencies and commands exist, update this file to match them.
 | Evidence images | Local file storage |
 
 Don't add frameworks, services, cloud dependencies or extra databases beyond
-this list without asking first.
+this list without asking first. The one approved optional addition is a
+locally run Gemma 4 model for event review (see the Gemma 4 section below).
 
 ## Architecture
 
@@ -59,10 +60,48 @@ constructsafe/
   storage.py         # SQLite access for SafetyEvent and zone configs
   annotate.py        # draw boxes, zone overlay, warning banners
   pipeline.py        # glues the stages together; reports progress/status
+  review.py          # optional Gemma 4 review of event frames (off by default)
 tests/
 data/                # local videos, evidence images, sqlite db (git-ignored)
 docs/
 ```
+
+## Gemma 4 vision-language review (optional, post-MVP)
+
+Gemma 4 (Google, open weights, Apache 2.0) is an **optional second-pass
+reviewer**. It is not part of the PRD's core stack and does not replace YOLO.
+Build it only after Phases 1–4 work. Track it as Phase 7 in `docs/ROADMAP.md`.
+
+**Use it for:**
+- Reviewing the evidence screenshot of each zone-entry event, e.g. "Is a
+  person close to heavy machinery? yes / no / unsure".
+- Identifying the equipment type in a frame (excavator, dump truck, forklift…)
+  to label zones, and checking early whether YOLO's pretrained weights cover
+  the target equipment.
+- Writing a one-sentence description of each event for the dashboard.
+- Summarising a processed video's events into a short report.
+
+**Rules:**
+- Run it **only on frames that already produced an event**, never on every
+  frame. YOLO does per-frame detection; Gemma 4 is far too slow for that.
+- Its output is supporting information. It must **never suppress, delete or
+  downgrade an event**: a missed hazard is worse than a false alarm.
+- Run it **locally** (Ollama or Hugging Face Transformers) so footage stays on
+  the machine. Don't send site footage to a cloud API without explicit
+  approval.
+- Start with the E4B model on a laptop. Use 26B A4B or 31B only when a capable
+  GPU is available. Keep the model name configurable.
+- Keep it in its own module (`constructsafe/review.py`). Turn it off by
+  default with a config flag. The pipeline must work unchanged when it's off,
+  or when the model isn't installed or fails.
+- Ask for structured JSON (e.g. `{"person_near_equipment": "yes|no|unsure",
+  "equipment_type": "...", "confidence": 0.0}`), validate it, and store it as
+  extra fields on the event.
+- Label its output in the UI as **"AI-generated, requires human review"**.
+- Don't prompt it to describe, identify or recognise individual people. The
+  PRD's privacy rules apply.
+- Before relying on it, measure whether it actually reduces false alarms on
+  the test videos, and record the result in the roadmap.
 
 ## Domain rules
 
@@ -122,6 +161,7 @@ associated video/camera identifier.
 4. Dashboard: upload, annotated footage, processing status, event history.
 5. Testing and demo: see the evaluation section below.
 6. Optional: live webcam/camera stream.
+7. Optional: Gemma 4 review of event frames (see the Gemma 4 section above).
 
 Work in phase order unless asked otherwise.
 

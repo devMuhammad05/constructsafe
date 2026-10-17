@@ -18,6 +18,7 @@ changes, and add a short note or link (commit or PR) when useful.
 | 4. Dashboard | ⬜ Not started |
 | 5. Testing and demonstration | ⬜ Not started |
 | 6. Optional live monitoring | ⬜ Not started |
+| 7. Optional Gemma 4 event review | ⬜ Not started |
 
 ## Phase 0 — Project setup
 
@@ -96,6 +97,23 @@ changes, and add a short note or link (commit or PR) when useful.
 | ⬜ | Connect a webcam or camera stream as a frame source | §12 |
 | ⬜ | Evaluate frame rate and detection latency | §12 |
 | ⬜ | Test under different lighting and camera angles | §12 |
+
+## Phase 7 — Optional Gemma 4 event review
+
+Post-MVP. Start only after Phases 1–4 work. See the Gemma 4 section in
+`CLAUDE.md` / `AGENTS.md` for the rules.
+
+| Status | Task | Notes |
+|---|---|---|
+| ⬜ | Set up a local Gemma 4 runtime (Ollama or Transformers), starting with E4B | Model name configurable |
+| ⬜ | Add `constructsafe/review.py` behind a config flag that is off by default | Pipeline works without it |
+| ⬜ | Review event screenshots with a structured JSON prompt and validate the output | Only frames with events |
+| ⬜ | Store review results as extra fields on `SafetyEvent` | Never suppresses events |
+| ⬜ | Identify equipment type to help label zones | Supports the §14 equipment risk |
+| ⬜ | Show an event description and an "AI-generated, requires human review" label in the dashboard | |
+| ⬜ | Generate a per-video event summary | |
+| ⬜ | Handle a missing model, timeouts and invalid output gracefully | |
+| ⬜ | Measure the effect on false alarms and processing time, and document the results | Decide whether to keep it |
 
 ## MVP Definition of Done (PRD §15)
 
