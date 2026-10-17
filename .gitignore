@@ -1,0 +1,33 @@
+# Python / uv
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# Local data: footage, evidence images, the database and outputs never go in git
+data/
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+*.db
+*.sqlite
+*.sqlite3
+
+# Model weights (downloaded on first run)
+models/
+*.pt
+*.onnx
+
+# Ultralytics run outputs
+runs/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

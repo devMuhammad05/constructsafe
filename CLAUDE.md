@@ -15,8 +15,21 @@ The full spec is in `docs/PRD.md`, and progress is tracked in
 decisions. If a request conflicts with the PRD, point out the conflict rather
 than quietly departing from it.
 
-**Status:** pre-implementation. The repo holds only the PRD so far. Once code,
-dependencies and commands exist, update this file to match them.
+**Status:** Phase 0 done; Phase 1 (person detection) mostly done. Keep this
+file in step with the code, dependencies and commands.
+
+## Commands
+
+```bash
+uv sync                                              # install / update the environment
+uv run pytest                                        # unit tests (no YOLO or real video needed)
+uv run python scripts/detect_people.py <video|image> # annotate people -> data/outputs/
+uv run python scripts/check_equipment.py <video>     # which COCO classes does YOLO see?
+```
+
+Python: the project uses the system Python 3.13 (`.python-version`). Don't
+let uv download a managed Python from inside the Claude desktop app: its
+sandbox redirects `%APPDATA%`, so the install is invisible outside the app.
 
 ## Tech stack (PRD §9)
 
@@ -66,19 +79,22 @@ uploaded video files without a rewrite.
 Suggested layout (adjust as the code takes shape, then update this section):
 
 ```
-app/                 # Streamlit UI only (upload, processing status, dashboard)
+app/                 # Streamlit UI only (upload, processing status, dashboard) - Phase 4
 constructsafe/
-  sources.py         # frame sources: video file now, camera later
-  detection.py       # YOLO wrapper → person detections (bbox, label, confidence)
+  config.py          # all tunables + storage paths; CONSTRUCTSAFE_* env overrides  [exists]
+  sources.py         # frame sources: video file now, camera later  [exists]
+  detection.py       # YOLO wrapper → person detections (bbox, label, confidence)  [exists]
   zones.py           # danger-zone polygons + point-in-zone checks
   events.py          # zone-entry state machine, duplicate suppression
   evidence.py        # screenshot capture to local storage
   storage.py         # SQLite access for SafetyEvent and zone configs
-  annotate.py        # draw boxes, zone overlay, warning banners
+  annotate.py        # draw boxes, zone overlay, warning banners  [boxes exist]
   pipeline.py        # glues the stages together; reports progress/status
   review.py          # optional Gemma 4 review of event frames (off by default)
+scripts/             # CLI tools for development and evaluation  [exists]
 tests/
-data/                # local videos, evidence images, sqlite db (git-ignored)
+data/                # local videos, evidence images, sqlite db, outputs (git-ignored)
+models/              # YOLO weights, downloaded on first run (git-ignored)
 docs/
 ```
 

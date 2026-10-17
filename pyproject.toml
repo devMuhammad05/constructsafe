@@ -1,0 +1,28 @@
+[project]
+name = "constructsafe"
+version = "0.1.0"
+description = "Computer vision monitoring of worker-heavy equipment danger zones in construction-site video. Alerts are potential hazards requiring human review."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.5.4",
+    "opencv-python>=5.0.0.93",
+    "streamlit>=1.66.0",
+    "ultralytics>=8.4.181",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[build-system]
+requires = ["uv_build>=0.13.1,<0.14"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "constructsafe"
+module-root = ""
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

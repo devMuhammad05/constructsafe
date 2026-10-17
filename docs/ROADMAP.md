@@ -11,8 +11,8 @@ changes, and add a short note or link (commit or PR) when useful.
 
 | Phase | Status |
 |---|---|
-| 0. Project setup | 🟡 Partially done |
-| 1. Object detection | ⬜ Not started |
+| 0. Project setup | ✅ Done |
+| 1. Object detection | 🟡 Partially done |
 | 2. Danger-zone logic | ⬜ Not started |
 | 3. Event logging | ⬜ Not started |
 | 4. Dashboard | ⬜ Not started |
@@ -28,21 +28,23 @@ changes, and add a short note or link (commit or PR) when useful.
 | ✅ | Add agent guidance files | `CLAUDE.md`, `AGENTS.md` |
 | ✅ | Create this roadmap | `docs/ROADMAP.md` |
 | ✅ | Choose uv as the package and environment manager | uv 0.13.1 installed; rules in `CLAUDE.md` / `AGENTS.md` |
-| ⬜ | Set up the Python environment with uv (`pyproject.toml`, `uv.lock`) | Ultralytics, OpenCV, Streamlit |
-| ⬜ | Scaffold the package layout and `tests/` | See `CLAUDE.md` › Architecture |
-| ⬜ | Add `.gitignore` for videos, evidence, weights, the database and `.venv/` | |
-| ⬜ | Add a central config (threshold, frame stride, persistence frames, paths) | |
-| ⬜ | Add a README with setup and run instructions | |
+| ✅ | Set up the Python environment with uv (`pyproject.toml`, `uv.lock`) | Python 3.13 (system), CPU PyTorch |
+| ✅ | Scaffold the package layout and `tests/` | `constructsafe/`, `scripts/`, `tests/`; `app/` comes in Phase 4 |
+| ✅ | Add `.gitignore` for videos, evidence, weights, the database and `.venv/` | |
+| ✅ | Add a central config (threshold, frame stride, persistence frames, paths) | `constructsafe/config.py`, `CONSTRUCTSAFE_*` env overrides |
+| ✅ | Add a README with setup and run instructions | `README.md` |
 
 ## Phase 1 — Object detection
 
 | Status | Task | PRD ref |
 |---|---|---|
-| ⬜ | Load a sample construction video as a frame source | FR-01 |
-| ⬜ | Run pretrained YOLO and keep only `person` detections | FR-02 |
-| ⬜ | Draw bounding boxes with label and confidence | FR-02 |
-| ⬜ | Filter detections by a configurable confidence threshold | FR-02 |
-| ⬜ | Test whether pretrained YOLO detects the target equipment, and record the result | §14 |
+| ✅ | Load a video as a frame source, with file-type and readability checks | FR-01 · `sources.py` |
+| ✅ | Run pretrained YOLO and keep only `person` detections | FR-02 · `detection.py`, `yolo11n.pt` |
+| ✅ | Draw bounding boxes with label and confidence | FR-02 · `annotate.py`, `scripts/detect_people.py` |
+| ✅ | Filter detections by a configurable confidence threshold | FR-02 · default 0.35 |
+| 🟡 | Test whether pretrained YOLO detects the target equipment, and record the result | §14 · `scripts/check_equipment.py` works (tested on a sample street image only). Still needs real construction footage |
+| 🟡 | Run person detection on real construction footage | FR-02 · verified only on Ultralytics' sample image and a synthetic clip; no site video in the repo yet |
+| ✅ | Record baseline CPU speed | ~7 fps, `yolo11n` at 640 px, 16-thread CPU, after warm-up |
 
 ## Phase 2 — Danger-zone logic
 
@@ -80,7 +82,7 @@ changes, and add a short note or link (commit or PR) when useful.
 
 | Status | Task | PRD ref |
 |---|---|---|
-| ⬜ | Unit tests for zone geometry, the event state machine and storage | §13 |
+| 🟡 | Unit tests for zone geometry, the event state machine and storage | §13 · config, detection filtering and video source tests exist (18); zone/events/storage come with Phases 2–3 |
 | ⬜ | Scenario: worker outside the zone | §13 |
 | ⬜ | Scenario: worker entering, staying inside and leaving the zone | §13 |
 | ⬜ | Scenario: several workers near the equipment | §13 |
