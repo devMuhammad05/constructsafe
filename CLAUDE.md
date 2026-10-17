@@ -202,3 +202,24 @@ not started.
 - Write down known limitations as you find them (image-space zones, occlusion,
   equipment that isn't recognised). Documenting limitations is part of the
   Definition of Done (PRD §15).
+
+## Claude Code skills
+
+The repo has no project-specific skills (`.claude/skills/`) yet. Use these
+built-in skills at the points listed:
+
+| Skill | When to use it in this project |
+|---|---|
+| `/run` | After changing the pipeline or UI: launch the Streamlit app, process a sample video and confirm boxes, the zone overlay, warnings and logged events actually appear. Tests alone don't show this. |
+| `/code-review` | Before committing any non-trivial change. Pay particular attention to the zone-entry state machine, duplicate suppression, and SQLite reads and writes. |
+| `/simplify` | After a feature works, to clean up duplication, for example between annotation and evidence-capture code. |
+| `/security-review` | Before merging changes to video upload, file paths, local storage or the database, and before any real-site deployment. Check file-type validation, path traversal in evidence paths, and footage access (PRD §8 Privacy). |
+| `dataviz` | Before building dashboard charts (event counts, events over time) or plots of evaluation results (precision/recall, FPS, alert latency). |
+| `/session-start-hook` | Once dependencies exist: add a SessionStart hook that installs requirements and runs the tests, so cloud sessions can verify work. |
+
+Don't use `claude-api` for the Gemma 4 work. Gemma is not a Claude model, so
+follow the Gemma 4 section above instead.
+
+If a workflow repeats often (e.g. "evaluate a test video and update the
+metrics in the roadmap"), suggest turning it into a project skill under
+`.claude/skills/`.
