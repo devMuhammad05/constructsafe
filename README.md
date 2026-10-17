@@ -120,6 +120,19 @@ How it decides:
   `additional_worker_entry` fires when the count rises while the zone is
   already occupied.
 
+### Evaluation (Phase 5)
+
+See [`docs/EVALUATION.md`](docs/EVALUATION.md). In short:
+
+```bash
+uv run python scripts/fetch_test_footage.py --download        # 5 Pexels test clips (~107 MB) into data/videos/
+uv run python scripts/evaluate_events.py <clip> --labels <clip>.events.json
+uv run python scripts/evaluate_detection.py export <clip>     # then label, then: run <clip> --labels ...
+```
+
+Known limitations: [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md). Demo script:
+[`docs/DEMO.md`](docs/DEMO.md).
+
 ## Tests
 
 ```bash

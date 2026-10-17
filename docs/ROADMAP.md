@@ -12,12 +12,12 @@ changes, and add a short note or link (commit or PR) when useful.
 | Phase | Status |
 |---|---|
 | 0. Project setup | ✅ Done |
-| 1. Object detection | 🟡 Partially done |
+| 1. Object detection | ✅ Done |
 | 2. Danger-zone logic | ✅ Done |
 | 3. Event logging | ✅ Done |
 | 4. Dashboard | ✅ Done |
 | 5. Testing and demonstration | 🟡 Partially done |
-| 6. Optional live monitoring | ⬜ Not started |
+| 6. ~~Live monitoring~~ | Removed from scope (2026-10-17) |
 | 7. Optional Gemma 4 event review | ⬜ Not started |
 
 ## Phase 0 — Project setup
@@ -42,9 +42,9 @@ changes, and add a short note or link (commit or PR) when useful.
 | ✅ | Run pretrained YOLO and keep only `person` detections | FR-02 · `detection.py`, `yolo11n.pt` |
 | ✅ | Draw bounding boxes with label and confidence | FR-02 · `annotate.py`, `scripts/detect_people.py` |
 | ✅ | Filter detections by a configurable confidence threshold | FR-02 · default 0.35 |
-| 🟡 | Test whether pretrained YOLO detects the target equipment, and record the result | §14 · `scripts/check_equipment.py` works (tested on a sample street image only). Still needs real construction footage |
-| 🟡 | Run person detection on real construction footage | FR-02 · verified only on Ultralytics' sample image and a synthetic clip; no site video in the repo yet |
-| ✅ | Record baseline CPU speed | ~7–8 fps, `yolo11n` at 640 px, 16-thread CPU, after warm-up, including annotation and logging |
+| ✅ | Test whether pretrained YOLO detects the target equipment, and record the result | §14 · On the 5 Pexels clips (12 sampled frames each, conf ≥ 0.25): no excavator class exists; excavators, rollers and dump trucks appear only intermittently as low-confidence `truck` (≈0.25–0.5), a piling rig as `train`/`car`, and a demolition excavator not at all. Junk labels (giraffe, bench) appear on machinery. **Conclusion: pretrained YOLO can't locate equipment reliably; keep manually drawn zones.** |
+| ✅ | Run person detection on real construction footage | FR-02 · all 5 Pexels clips processed (stride 2). Spot-checked: workers found in dust, at distance and near machines; 0 people in the excavator-only clip. Accuracy not yet measured (Phase 5) |
+| ✅ | Record baseline CPU speed | 8.3–9.7 processed fps on 1280×720 site clips (`yolo11n`, 640 px inference, 16-thread CPU, detection + annotation + writing). Earlier sample clip: ~7–8 fps |
 
 ## Phase 2 — Danger-zone logic
 
@@ -90,19 +90,18 @@ changes, and add a short note or link (commit or PR) when useful.
 | 🟡 | Scenario: worker entering, staying inside and leaving the zone | §13 · unit-tested; entry verified on a sample clip; real footage pending |
 | 🟡 | Scenario: several workers near the equipment | §13 · unit-tested (`additional_worker_entry`); real footage pending |
 | 🟡 | Scenario: occlusion or missed detections, and objects leaving the frame | §13 · unit-tested; real footage pending |
-| ⬜ | Measure detection precision and recall | §13 |
-| ⬜ | Measure event precision and recall | §13 |
-| ⬜ | Measure processing FPS and alert latency | §13 |
-| ⬜ | Document test results and known limitations | §15 |
-| ⬜ | Prepare an end-to-end demonstration | §15 |
+| ⬜ | Measure detection precision and recall | §13 · tool ready: `scripts/evaluate_detection.py` (export frames → hand-label → run). Needs labels |
+| ⬜ | Measure event precision and recall | §13 · tool ready: `scripts/evaluate_events.py` (separate eval DB, saved reports). Needs footage + labels |
+| ⬜ | Measure processing FPS and alert latency | §13 · reported by `evaluate_events.py`; stride/width sweep described in `docs/EVALUATION.md` |
+| 🟡 | Document test results and known limitations | §15 · `docs/LIMITATIONS.md` written; results table in `docs/EVALUATION.md` still empty |
+| 🟡 | Prepare an end-to-end demonstration | §15 · `docs/DEMO.md` script + `scripts/reset_demo.py`; not yet rehearsed on site footage |
+| ✅ | Evaluation tooling with unit tests | `constructsafe/evaluation.py`: one-to-one event matching with latency, IoU detection matching, label loaders |
+| ✅ | Source test footage | 5 Pexels clips (106.7 MB) downloaded to `data/videos/`, listed in `scripts/fetch_test_footage.py` / `docs/EVALUATION.md` (file names carry source + ID) |
 
-## Phase 6 — Optional live monitoring
+## Phase 6 — Live monitoring (removed)
 
-| Status | Task | PRD ref |
-|---|---|---|
-| ⬜ | Connect a webcam or camera stream as a frame source | §12 |
-| ⬜ | Evaluate frame rate and detection latency | §12 |
-| ⬜ | Test under different lighting and camera angles | §12 |
+Removed from scope on 2026-10-17 at the product owner's request. ConstructSafe
+processes uploaded, recorded videos only. See PRD v1.1.
 
 ## Phase 7 — Optional Gemma 4 event review
 

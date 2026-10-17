@@ -1,8 +1,7 @@
 """Frame sources.
 
-The pipeline consumes any iterable of :class:`Frame`. Uploaded video files are
-the MVP source; a live camera source (Phase 6) only needs to yield the same
-``Frame`` objects.
+The pipeline consumes any iterable of :class:`Frame`. ConstructSafe processes
+uploaded, recorded video files only (live camera input is out of scope).
 """
 
 from __future__ import annotations
@@ -80,6 +79,22 @@ def resize_to_max_width(image: np.ndarray, max_width: int) -> np.ndarray:
         return image
     scale = max_width / width
     return cv2.resize(image, (max_width, round(height * scale)), interpolation=cv2.INTER_AREA)
+
+
+def read_frame(path: str | Path, frame_index: int) -> Frame:
+    """Read a single frame by index (used by evaluation tools)."""
+    capture = cv2.VideoCapture(str(path))
+    try:
+        if not capture.isOpened():
+            raise VideoValidationError(f"Could not open '{Path(path).name}'.")
+        fps = capture.get(cv2.CAP_PROP_FPS) or 30.0
+        capture.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
+        ok, image = capture.read()
+        if not ok or image is None:
+            raise VideoValidationError(f"Could not read frame {frame_index} of '{Path(path).name}'.")
+        return Frame(index=frame_index, timestamp_seconds=frame_index / fps, image=image)
+    finally:
+        capture.release()
 
 
 class VideoFileSource:

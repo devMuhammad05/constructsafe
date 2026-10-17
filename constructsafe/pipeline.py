@@ -87,7 +87,7 @@ def monitor_frames(
     zones: Sequence[DangerZone],
     config: Config,
 ) -> Iterator[FrameResult]:
-    """Process frames one at a time. Works with any frame source, live or recorded."""
+    """Process frames one at a time from any iterable of frames."""
     engine = ZoneEventEngine(
         zones,
         enter_frames=config.enter_persistence_frames,

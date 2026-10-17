@@ -1,7 +1,7 @@
 # Product Requirements Document (PRD)
 ## Real-Time Computer Vision-Based Detection of Unsafe Worker–Heavy Equipment Interactions on Construction Sites
 
-**Version:** 1.0  
+**Version:** 1.1 (2026-10-17: live camera monitoring removed from scope)  
 **Status:** MVP — Proposed  
 **Product type:** Computer vision safety-monitoring 
 
@@ -11,7 +11,7 @@ The product is a computer vision-based safety-monitoring application that detect
 
 Using a pretrained object-detection model, the system analyses video frames, checks whether a worker enters a predefined danger zone around equipment, displays visual warnings, and records safety events for review.
 
-The initial version will support uploaded videos, with live camera monitoring introduced as a later MVP enhancement. 
+The product works on uploaded, recorded videos. Live camera monitoring is not part of the product.
 
 ## 2. Problem Statement
 
@@ -76,6 +76,7 @@ Needs to test detection behaviour, configure danger zones, and assess system per
 - Automatic detection of every type of heavy equipment.
 - PPE, helmet, and reflective-vest compliance detection.
 - Multi-camera tracking.
+- Live camera, webcam or CCTV stream monitoring.
 - Mobile applications and cloud-scale deployment.
 - Automatic stopping of equipment or activation of emergency controls.
 - Claims of certified or guaranteed construction-site safety.
@@ -185,7 +186,7 @@ The system shall indicate whether a video is waiting to be processed, processing
 **Performance**
 - The application should process short test videos on a typical development computer.
 - Processing speed and detection latency should be measured and documented.
-- Live, real-time performance is not guaranteed until validated on the target hardware.
+- Real-time processing is not a requirement: videos are processed after upload.
 
 **Usability**
 - The interface should be simple enough for a non-technical site supervisor to operate.
@@ -222,7 +223,7 @@ The MVP should use pretrained weights initially. Custom model training should be
 
 **Video input → Frame extraction → Object detection → Danger-zone evaluation → Event generation → Evidence capture → Database storage → Dashboard**
 
-The detection module should be separate from the dashboard logic so that a later version can accept a live camera stream without rebuilding the entire application.
+The detection module should be separate from the dashboard logic, so it can be tested and run independently of the user interface.
 
 ## 11. Data Model
 
@@ -270,10 +271,6 @@ A separate danger-zone configuration can store the zone name, coordinates, and a
 - Measure false alarms, missed events, and processing speed.
 - Prepare a short demonstration.
 
-**Phase 6 — Optional live monitoring**
-- Connect a webcam or supported camera stream.
-- Evaluate frame rate and detection latency.
-- Test the system under different lighting and camera angles.
 
 ## 13. Testing and Evaluation
 
@@ -335,7 +332,6 @@ After the MVP has been validated, possible enhancements include:
 - Equipment movement and direction estimation.
 - Camera calibration for approximate physical-distance estimation.
 - PPE compliance monitoring.
-- Live CCTV integration.
 - Notifications to authorised safety personnel.
 - Multi-camera site monitoring and analytics.
 

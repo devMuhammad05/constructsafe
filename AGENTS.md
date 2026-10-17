@@ -15,7 +15,7 @@ The full spec is in `docs/PRD.md`, and progress is tracked in
 decisions. If a request conflicts with the PRD, point out the conflict rather
 than quietly departing from it.
 
-**Status:** Phases 0, 2, 3 and 4 done; Phase 1 needs real site footage; Phase 5 (testing and demo) next. Keep this
+**Status:** Phases 0, 2, 3 and 4 done. Phase 5 tooling is done (`docs/EVALUATION.md`), but the metrics still need labelled footage. Phase 1 still needs site footage. Keep this
 file in step with the code, dependencies and commands.
 
 ## Commands
@@ -27,6 +27,10 @@ uv run pytest                                        # unit tests (no YOLO or re
 uv run python scripts/detect_people.py <video|image> # annotate people -> data/outputs/
 uv run python scripts/check_equipment.py <video>     # which COCO classes does YOLO see?
 uv run python scripts/monitor_zone.py <video> --zone "x1,y1;x2,y2;x3,y3" [--preview]  # zone events -> SQLite + evidence
+uv run python scripts/fetch_test_footage.py [--download]            # Pexels test clips -> data/videos/
+uv run python scripts/evaluate_events.py <video> --labels <json>    # event P/R, latency, FPS -> data/eval/reports/
+uv run python scripts/evaluate_detection.py export|run <video> ...  # person detection P/R vs hand labels
+uv run python scripts/reset_demo.py [--yes]                          # clear DB/evidence/outputs for a demo
 ```
 
 Python: the project uses the system Python 3.13 (`.python-version`). Don't
@@ -74,9 +78,9 @@ Video input → Frame extraction → Object detection → Danger-zone evaluation
 ```
 
 **Key rule:** keep the detection/processing pipeline independent of Streamlit.
-The core modules must not import `streamlit`. The pipeline should take a
-generic frame source, so that a live camera stream (Phase 6) can replace
-uploaded video files without a rewrite.
+The core modules must not import `streamlit`, so they can be tested and run
+on their own. The pipeline consumes any iterable of frames; the product only
+uses uploaded video files.
 
 Suggested layout (adjust as the code takes shape, then update this section):
 
@@ -87,7 +91,7 @@ app/                 # Streamlit UI only  [exists]
   views/             #   process.py (upload, zones, run), events.py, runs.py
 constructsafe/
   config.py          # all tunables + storage paths; CONSTRUCTSAFE_* env overrides  [exists]
-  sources.py         # frame sources: video file now, camera later  [exists]
+  sources.py         # video file frame source + validation  [exists]
   detection.py       # YOLO wrapper → person detections (bbox, label, confidence)  [exists]
   zones.py           # danger-zone polygons + point-in-zone checks  [exists]
   events.py          # zone-entry state machine, duplicate suppression  [exists]
@@ -97,6 +101,7 @@ constructsafe/
   pipeline.py        # glues the stages together; reports progress/status  [exists]
   uploads.py         # save + validate uploaded videos, safe names  [exists]
   video_out.py       # browser-playable video writer (H.264 → VP8 → mp4v)  [exists]
+  evaluation.py      # event/detection matching + metrics vs labels (pure)  [exists]
   review.py          # optional Gemma 4 review of event frames (off by default)
 scripts/             # CLI tools for development and evaluation  [exists]
 tests/
@@ -209,7 +214,8 @@ schema changes.
   local storage location. Never commit videos, evidence images or database
   files.
 - **Out of scope for the MVP** (don't build without asking): PPE/helmet/vest
-  detection, multi-camera tracking, mobile apps, cloud deployment, automatic
+  detection, live camera/webcam/CCTV monitoring, multi-camera tracking,
+  mobile apps, cloud deployment, automatic
   equipment stop or emergency controls, physical distance estimation.
 
 ## Roadmap (PRD §12)
@@ -221,7 +227,7 @@ schema changes.
 3. Event logging: evidence screenshots, SQLite persistence.
 4. Dashboard: upload, annotated footage, processing status, event history.
 5. Testing and demo: see the evaluation section below.
-6. Optional: live webcam/camera stream.
+6. ~~Live camera stream~~: removed from scope (PRD v1.1). Don't build it.
 7. Optional: Gemma 4 review of event frames (see the Gemma 4 section above).
 
 Work in phase order unless asked otherwise.
@@ -250,6 +256,12 @@ not started.
   the frame.
 - Metrics to measure and document (don't assume them): detection
   precision/recall, event precision/recall, processing FPS, alert latency.
+  Use `scripts/evaluate_events.py` and `scripts/evaluate_detection.py`, and
+  record the results in `docs/EVALUATION.md` and the roadmap. Never record
+  numbers measured on non-construction or synthetic footage as results.
+- Test footage files are named `<source>_<id>_<author>_<description>_<WxH>.mp4`
+  and listed in `scripts/fetch_test_footage.py` with URL, licence and size.
+  Labels are written by hand, never generated from the model's own output.
 - Performance on low-powered machines: reduce input resolution or frame
   stride, and measure the effect on quality.
 
