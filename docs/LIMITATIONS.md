@@ -21,7 +21,17 @@ this file as evaluation finds more.
   longer than the exit persistence window is treated as gone.
 - **False detections** (signs, mannequins, people on posters, workers in
   machine cabs) can trigger alerts. An operator inside a cab whose feet point
-  falls inside the zone will raise an alert.
+  falls inside the zone will raise an alert. *Seen on the Pexels 33769531
+  clip:* the excavator operator in the cab triggered a `danger_zone_entry`.
+- **Duplicate boxes on one person.** YOLO sometimes draws two overlapping
+  boxes on the same worker, which made the zone count read 2 and logged a
+  bogus `additional_worker_entry` (seen twice on Pexels 33769531).
+  *Mitigated:* near-identical boxes are now suppressed
+  (`duplicate_iou_threshold`, `duplicate_containment_threshold`). The
+  trade-off: if two real workers stand almost exactly behind each other, they
+  can be counted as one, and the second worker's
+  `additional_worker_entry` would be missed. The first entry into an empty
+  zone is never lost this way.
 
 ## Zones and positions
 
@@ -49,6 +59,13 @@ this file as evaluation finds more.
   isn't reported.
 - **Clearing.** After a count drop the warning can take up to twice
   `exit_persistence_frames` to clear fully.
+- **Workers on the zone boundary.** Hysteresis is in time only. A worker
+  standing right on the zone edge can drift in and out and trigger repeated
+  `danger_zone_entry` alerts (seen in a UI test, 2.7 s apart).
+- **Frame stride trades latency and coverage for speed.** At stride 2,
+  persistence windows cover twice the video time, and brief events, including
+  false alarms, can fall between sampled frames. So results at different
+  strides aren't directly comparable.
 
 ## Performance
 
@@ -57,7 +74,17 @@ this file as evaluation finds more.
   30 fps source rate, so a 1-minute clip takes about 3–4 minutes at stride 1.
   Raise the frame stride to process faster.
 - Processing in the Streamlit app is synchronous: it blocks that browser
-  session until it finishes.
+  session until it finishes. It's also slower than the command line (5.4 vs
+  9.0 fps on the same clip) because of the live preview.
+
+## User interface
+
+- Zones are set with sliders or typed points; you can't draw them by
+  clicking on the frame.
+- In narrow windows, long video file names and some labels in the events
+  table and filters are cut off.
+- Only one video is processed at a time, with no queue or background
+  processing.
 
 ## Privacy and deployment
 

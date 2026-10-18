@@ -168,3 +168,19 @@ def test_engine_with_no_detections_does_not_crash():
 def test_engine_rejects_duplicate_zone_ids():
     with pytest.raises(ValueError):
         ZoneEventEngine([LEFT, LEFT], enter_frames=2, exit_frames=2)
+
+
+def test_duplicate_boxes_no_longer_fake_an_additional_worker():
+    """Regression for the false alarms seen on the Pexels 33769531 clip."""
+    from constructsafe.detection import suppress_duplicates
+
+    zone = DangerZone("z", "Z", ((0.25, 0.55), (0.8, 0.55), (0.8, 0.88), (0.25, 0.88)))
+    engine = ZoneEventEngine([zone], enter_frames=3, exit_frames=5)
+    one = Detection(430, 423, 488, 527, "person", 0.63, 0)
+    dup = Detection(431, 424, 472, 526, "person", 0.38, 0)
+    events = []
+    for i in range(10):
+        dets = [one, dup] if i >= 4 else [one]  # the duplicate appears after the worker entered
+        dets = suppress_duplicates(dets, iou_threshold=0.55, containment_threshold=0.85)
+        events += engine.update(i, i / 30, dets, 1280, 720).events
+    assert [e.event_type for e in events] == [EVENT_ZONE_ENTRY]

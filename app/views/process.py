@@ -105,7 +105,12 @@ height, width = frame_rgb.shape[:2]
 editor_col, preview_col = st.columns([2, 3])
 with editor_col:
     with st.container(border=True):
-        zone_name = st.text_input("Zone name", value="Excavator swing area" if not zones else "")
+        zone_name = st.text_input(
+            "Zone name",
+            value="Excavator swing area",
+            key="zone_name",
+            help="Saving with the name of an existing zone updates that zone.",
+        )
         mode = st.radio("Shape", ["Rectangle", "Polygon points"], horizontal=True)
         st.caption("Positions are percentages of the frame: 0 is left/top, 100 is right/bottom.")
         if mode == "Rectangle":
@@ -156,9 +161,13 @@ with editor_col:
     if zones:
         st.markdown("**Saved zones**")
         for zone in zones:
-            c1, c2 = st.columns([4, 1])
-            c1.markdown(f"- {zone.name}" + ("" if zone.source_name else " *(all videos)*"))
-            if c2.button("Delete", key=f"del_{zone.zone_id}_{zone.source_name}"):
+            label = zone.name + ("" if zone.source_name else " (all videos)")
+            if st.button(
+                f"Delete {label}",
+                key=f"del_{zone.zone_id}_{zone.source_name}",
+                icon=":material/delete:",
+                width="stretch",
+            ):
                 storage.delete_zone(zone.zone_id, zone.source_name)
                 st.rerun()
 

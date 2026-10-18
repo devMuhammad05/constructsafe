@@ -23,6 +23,11 @@ class Config:
     confidence_threshold: float = 0.35
     inference_image_size: int = 640
     device: str = "cpu"
+    # Drop a person box that nearly duplicates a higher-confidence one: both IoU and the
+    # share of the smaller box inside the other must reach these values (0 disables).
+    # Measured duplicates on the Pexels 33769531 clip: IoU 0.60-0.69, containment 0.91-1.0.
+    duplicate_iou_threshold: float = 0.55
+    duplicate_containment_threshold: float = 0.85
 
     # Video processing
     frame_stride: int = 1  # process every Nth frame; raise on slow machines

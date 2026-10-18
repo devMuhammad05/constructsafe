@@ -73,9 +73,33 @@ Run the event evaluation again with `--stride 2`, `--stride 3` or
 
 ## Results
 
-*Not measured yet.* Fill this in from the reports in `data/eval/reports/`,
-and mirror the headline numbers in `docs/ROADMAP.md`.
+Fill this in from the reports in `data/eval/reports/`, and mirror the
+headline numbers in `docs/ROADMAP.md`.
 
-| Clip | Settings | Event P | Event R | Latency (mean / max) | FPS | Detection P / R (conf 0.35) | Labelled by |
-|---|---|---|---|---|---|---|---|
-| | | | | | | | |
+> **Sample size warning:** the first clip has a single labelled entry. These
+> numbers show the tooling works and expose specific failure modes. They are
+> **not** a statistically meaningful accuracy estimate. Label more clips and
+> entries before quoting precision or recall.
+
+| Date | Clip | Settings | Events (TP / FP / FN) | Event P | Event R | Latency | FPS | Detection P / R | Labels |
+|---|---|---|---|---|---|---|---|---|---|
+| 2026-10-17 | 33769531 (Srajber) | stride 1, conf 0.35, no duplicate suppression | 1 / 3 / 0 | 25% | 100% | 0.0 s | 8.8 (CLI) | not measured | 1 entry, Claude draft, owner-confirmed |
+| 2026-10-17 | 33769531 (Srajber) | stride 1, conf 0.35, duplicate suppression 0.55 / 0.85 | 1 / 1 / 0 | 50% | 100% | 0.0 s | 9.0 (CLI) | not measured | same |
+| 2026-10-17 | 33769531 (Srajber) | stride 2, same, run from the Streamlit UI | 1 / 0 / 0 | 100% | 100% | 0.1 s | 5.4 (UI) | not measured | same |
+
+What the runs showed:
+
+- **Duplicate boxes** on one worker caused 2 of the 3 false alarms
+  (`additional_worker_entry`). Suppressing near-identical boxes (IoU ≥ 0.55
+  and ≥ 85% containment, from measured duplicates at IoU 0.60–0.69 and
+  containment 0.91–1.0) removed both, without losing the true entry.
+- **The excavator operator in the cab** caused the remaining false alarm at
+  stride 1 (23.8 s): the bottom of their box fell inside the zone. At stride
+  2 the frames that triggered it weren't sampled, so the stride-2 result is
+  luck, not a fix. Exclusion areas for cabs are the planned mitigation.
+- **The UI processes about 40% slower** than the CLI (5.4 vs 9.0 fps), because
+  of the live preview and progress updates.
+- In an earlier UI run with a wrongly placed zone edge (40% instead of 25%),
+  the worker hovered on the edge and triggered a second `danger_zone_entry`
+  2.7 s after the first. A worker standing on a zone boundary can cause
+  repeated alerts.

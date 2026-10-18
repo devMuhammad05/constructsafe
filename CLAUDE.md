@@ -15,7 +15,9 @@ The full spec is in `docs/PRD.md`, and progress is tracked in
 decisions. If a request conflicts with the PRD, point out the conflict rather
 than quietly departing from it.
 
-**Status:** Phases 0, 2, 3 and 4 done. Phase 5 tooling is done (`docs/EVALUATION.md`), but the metrics still need labelled footage. Phase 1 still needs site footage. Keep this
+**Status:** Phases 0–4 done. Phase 5 is in progress: the tooling is done, and the
+first clip has been evaluated (`docs/EVALUATION.md`), but more labelled clips are
+needed before the metrics mean anything. Live camera is out of scope. Keep this
 file in step with the code, dependencies and commands.
 
 ## Commands

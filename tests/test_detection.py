@@ -56,3 +56,53 @@ def test_draw_detections_does_not_modify_input():
     assert image.sum() == 0
     assert out.sum() > 0
     assert out.shape == image.shape
+
+
+# --- duplicate suppression ------------------------------------------------------
+
+from constructsafe.detection import suppress_duplicates  # noqa: E402
+
+
+def person(x1, y1, x2, y2, conf, cls=0):
+    return Detection(x1, y1, x2, y2, label="person" if cls == 0 else "truck", confidence=conf, class_id=cls)
+
+
+def dedupe(dets):
+    return suppress_duplicates(dets, iou_threshold=0.55, containment_threshold=0.85)
+
+
+@pytest.mark.parametrize(
+    "a, b",
+    [
+        # real duplicate pairs measured on the Pexels 33769531 clip (frames 1458, 1460, 1618, 1620)
+        ((428, 426, 463, 525, 0.48), (428, 425, 486, 526, 0.47)),
+        ((430, 423, 488, 527, 0.63), (431, 424, 472, 526, 0.38)),
+        ((397, 420, 464, 528, 0.74), (394, 420, 445, 529, 0.50)),
+        ((391, 420, 467, 528, 0.60), (385, 422, 447, 528, 0.59)),
+    ],
+)
+def test_measured_duplicates_collapse_to_the_higher_confidence_box(a, b):
+    kept = dedupe([person(*a), person(*b)])
+    assert len(kept) == 1
+    assert kept[0].confidence == max(a[4], b[4])
+
+
+def test_two_workers_side_by_side_are_kept():
+    # shoulders overlap a little (IoU ~0.1)
+    assert len(dedupe([person(100, 100, 150, 250, 0.8), person(140, 100, 190, 250, 0.7)])) == 2
+
+
+def test_worker_partly_behind_another_is_kept():
+    # rear worker's box is mostly inside the front one, but much smaller: IoU stays low
+    front = person(100, 100, 160, 260, 0.9)
+    rear = person(120, 110, 150, 200, 0.6)
+    assert len(dedupe([front, rear])) == 2
+
+
+def test_different_classes_are_never_merged():
+    assert len(dedupe([person(0, 0, 10, 10, 0.9), person(0, 0, 10, 10, 0.8, cls=7)])) == 2
+
+
+def test_suppression_can_be_disabled():
+    a, b = person(428, 426, 463, 525, 0.48), person(428, 425, 486, 526, 0.47)
+    assert len(suppress_duplicates([a, b], iou_threshold=0, containment_threshold=0)) == 2

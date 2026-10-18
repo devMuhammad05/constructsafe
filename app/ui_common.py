@@ -66,6 +66,8 @@ def get_detector(weights: str, image_size: int, device: str) -> YoloDetector:
 def detector_for(config: Config) -> YoloDetector:
     detector = get_detector(str(config.model_path), config.inference_image_size, config.device)
     detector.confidence_threshold = config.confidence_threshold
+    detector.duplicate_iou_threshold = config.duplicate_iou_threshold
+    detector.duplicate_containment_threshold = config.duplicate_containment_threshold
     return detector
 
 

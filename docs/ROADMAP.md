@@ -5,7 +5,7 @@ changes, and add a short note or link (commit or PR) when useful.
 
 **Legend:** ✅ Done · 🟡 Partially done · ⬜ Not started
 
-**Last updated:** 2026-10-17
+**Last updated:** 2026-10-18
 
 ## Summary
 
@@ -73,7 +73,7 @@ changes, and add a short note or link (commit or PR) when useful.
 | Status | Task | PRD ref |
 |---|---|---|
 | ✅ | Upload page with file-type and readability checks | FR-01 · `uploads.py` + `app/views/process.py`; invalid files rejected with a clear error and not kept. Valid upload covered by unit tests; invalid upload checked in the browser |
-| ✅ | Zone configuration UI | FR-03 · rectangle sliders or polygon points (%), live preview on the first frame, saved per video |
+| ✅ | Zone configuration UI | FR-03 · rectangle sliders or polygon points (%), live preview on the first frame, saved per video. Fixed: zone name no longer clears after a save (re-saving created a duplicate zone); Delete buttons no longer squashed |
 | ✅ | Processing status: pending, processing, completed or failed, with retry | FR-08 · live progress and preview; `Processing runs` page with errors and Retry; runs interrupted by an app stop are marked failed on start-up |
 | ✅ | Show annotated footage | FR-05 · browser-playable output (`video_out.py`: H.264 MP4, else VP8 WebM) |
 | ✅ | Event history: count, list, timestamp and evidence image | FR-07 · `Safety events` page: metrics, filters, table, evidence |
@@ -91,8 +91,10 @@ changes, and add a short note or link (commit or PR) when useful.
 | 🟡 | Scenario: several workers near the equipment | §13 · unit-tested (`additional_worker_entry`); real footage pending |
 | 🟡 | Scenario: occlusion or missed detections, and objects leaving the frame | §13 · unit-tested; real footage pending |
 | ⬜ | Measure detection precision and recall | §13 · tool ready: `scripts/evaluate_detection.py` (export frames → hand-label → run). Needs labels |
-| ⬜ | Measure event precision and recall | §13 · tool ready: `scripts/evaluate_events.py` (separate eval DB, saved reports). Needs footage + labels |
-| ⬜ | Measure processing FPS and alert latency | §13 · reported by `evaluate_events.py`; stride/width sweep described in `docs/EVALUATION.md` |
+| 🟡 | Measure event precision and recall | §13 · first clip (33769531, 1 labelled entry): recall 1/1; precision 1/4 → 1/2 after duplicate suppression (stride 1). See `docs/EVALUATION.md`. Needs more clips/entries before the numbers mean anything |
+| 🟡 | Measure processing FPS and alert latency | §13 · 9.0 fps CLI / 5.4 fps UI at 1280×720; latency 0.0 s (stride 1), 0.1 s (stride 2) on 1 entry. Stride/width sweep not done |
+| ✅ | Suppress duplicate person boxes | `detection.suppress_duplicates`; thresholds from measured duplicates; removed 2 of 3 false alarms on 33769531 |
+| ⬜ | Exclusion areas inside zones (e.g. machine cabs) | Remaining false alarm on 33769531 is the excavator operator |
 | 🟡 | Document test results and known limitations | §15 · `docs/LIMITATIONS.md` written; results table in `docs/EVALUATION.md` still empty |
 | 🟡 | Prepare an end-to-end demonstration | §15 · `docs/DEMO.md` script + `scripts/reset_demo.py`; not yet rehearsed on site footage |
 | ✅ | Evaluation tooling with unit tests | `constructsafe/evaluation.py`: one-to-one event matching with latency, IoU detection matching, label loaders |

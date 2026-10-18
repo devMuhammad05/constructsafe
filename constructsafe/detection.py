@@ -70,6 +70,45 @@ def detections_from_arrays(
     return detections
 
 
+def _overlap(a: Detection, b: Detection) -> tuple[float, float]:
+    """(IoU, intersection / area of the smaller box) for two detections."""
+    iw = max(0.0, min(a.x2, b.x2) - max(a.x1, b.x1))
+    ih = max(0.0, min(a.y2, b.y2) - max(a.y1, b.y1))
+    inter = iw * ih
+    area_a, area_b = a.width * a.height, b.width * b.height
+    union = area_a + area_b - inter
+    smaller = min(area_a, area_b)
+    return (inter / union if union > 0 else 0.0, inter / smaller if smaller > 0 else 0.0)
+
+
+def suppress_duplicates(
+    detections: Iterable[Detection], *, iou_threshold: float, containment_threshold: float
+) -> list[Detection]:
+    """Drop boxes that are near-copies of a higher-confidence box of the same class.
+
+    YOLO's own NMS sometimes keeps two boxes on one person (one slightly narrower,
+    sitting inside the other), which would make a zone count two workers. A box is
+    dropped only when it overlaps a kept box with IoU >= ``iou_threshold`` AND at
+    least ``containment_threshold`` of the smaller box lies inside the other.
+    Requiring both keeps two real, partly overlapping workers apart. A threshold
+    of 0 or less disables suppression.
+    """
+    detections = sorted(detections, key=lambda d: -d.confidence)
+    if iou_threshold <= 0 or containment_threshold <= 0:
+        return detections
+    kept: list[Detection] = []
+    for det in detections:
+        duplicate = any(
+            k.class_id == det.class_id
+            and (overlap := _overlap(k, det))[0] >= iou_threshold
+            and overlap[1] >= containment_threshold
+            for k in kept
+        )
+        if not duplicate:
+            kept.append(det)
+    return kept
+
+
 class YoloDetector:
     """Thin wrapper around an Ultralytics YOLO model."""
 
@@ -80,6 +119,8 @@ class YoloDetector:
         confidence_threshold: float,
         image_size: int = 640,
         device: str = "cpu",
+        duplicate_iou_threshold: float = 0.0,
+        duplicate_containment_threshold: float = 0.0,
     ) -> None:
         from ultralytics import YOLO  # imported lazily so pure logic stays light to test
 
@@ -90,6 +131,8 @@ class YoloDetector:
         self.confidence_threshold = confidence_threshold
         self.image_size = image_size
         self.device = device
+        self.duplicate_iou_threshold = duplicate_iou_threshold
+        self.duplicate_containment_threshold = duplicate_containment_threshold
 
     def warmup(self) -> None:
         """Run one blank inference so model start-up cost doesn't skew FPS measurements."""
@@ -117,13 +160,18 @@ class YoloDetector:
             verbose=False,
         )[0]
         boxes = result.boxes
-        return detections_from_arrays(
+        detections = detections_from_arrays(
             boxes.xyxy.cpu().numpy(),
             boxes.conf.cpu().numpy(),
             boxes.cls.cpu().numpy().astype(int),
             self.names,
             confidence_threshold=threshold,
             keep_class_ids=keep_class_ids,
+        )
+        return suppress_duplicates(
+            detections,
+            iou_threshold=self.duplicate_iou_threshold,
+            containment_threshold=self.duplicate_containment_threshold,
         )
 
     def detect_people(self, image: np.ndarray) -> list[Detection]:
@@ -137,4 +185,6 @@ def create_detector(config: Config) -> YoloDetector:
         confidence_threshold=config.confidence_threshold,
         image_size=config.inference_image_size,
         device=config.device,
+        duplicate_iou_threshold=config.duplicate_iou_threshold,
+        duplicate_containment_threshold=config.duplicate_containment_threshold,
     )
